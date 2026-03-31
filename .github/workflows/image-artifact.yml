@@ -1,0 +1,95 @@
+name: Image artifact
+
+on:
+  push:
+    tags:
+      - "v*"
+
+env:
+  REGISTRY: docker.io
+  IMAGE_NAME: melchor9000/docker-gatus-generator
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      attestations: write
+      id-token: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Checkout actions
+        uses: actions/checkout@v6
+        with:
+          repository: melchor629/actions
+          ref: main
+          token: ${{ secrets.PAT_GITHUB }}
+          path: ./.github/actions
+          fetch-depth: 0
+
+      - name: Setup docker
+        uses: ./.github/actions/docker/prepare
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ secrets.DOCKER_HUB_USER }}
+          password: ${{ secrets.DOCKER_HUB_TOKEN }}
+
+      - name: Extract version
+        uses: ./.github/actions/utils/version
+        id: version
+
+      - name: Build and push image
+        uses: ./.github/actions/docker/push-hub
+        with:
+          file: ./Dockerfile
+          image-name: ${{ env.IMAGE_NAME }}
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.version }}
+
+  deploy-pi:
+    runs-on: ubuntu-latest
+    needs: build
+    environment: pi
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout actions
+        uses: actions/checkout@v6
+        with:
+          repository: melchor629/actions
+          ref: main
+          token: ${{ secrets.PAT_GITHUB }}
+          path: ./.github/actions
+          fetch-depth: 0
+
+      - name: Deploy
+        uses: ./.github/actions/deploy/pi
+        with:
+          project: gatus
+          service: generator
+
+  deploy-po:
+    runs-on: ubuntu-latest
+    needs: build
+    environment: po
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout actions
+        uses: actions/checkout@v6
+        with:
+          repository: melchor629/actions
+          ref: main
+          token: ${{ secrets.PAT_GITHUB }}
+          path: ./.github/actions
+          fetch-depth: 0
+
+      - name: Deploy
+        uses: ./.github/actions/deploy/po
+        with:
+          project: gatus
+          service: generator

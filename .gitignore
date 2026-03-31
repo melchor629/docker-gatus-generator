@@ -1,0 +1,6 @@
+*.test
+*.out
+templates/*.tpl
+templates/**
+!templates/test.tpl
+.env.local

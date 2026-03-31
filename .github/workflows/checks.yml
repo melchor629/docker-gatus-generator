@@ -1,0 +1,52 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  check-and-build:
+    name: Check and Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install packages
+        run: go mod download
+
+      - name: Build
+        run: go build bin/
+    
+      - name: Test
+        run: go test ./...
+
+  docker:
+    name: Docker image build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Checkout actions
+        uses: actions/checkout@v6
+        with:
+          repository: melchor629/actions
+          ref: main
+          token: ${{ secrets.PAT_GITHUB }}
+          path: ./.github/actions
+          fetch-depth: 0
+
+      - name: Setup docker
+        uses: ./.github/actions/docker/prepare
+
+      - name: Build image
+        uses: ./.github/actions/docker/build
+        with:
+          file: ./Dockerfile
