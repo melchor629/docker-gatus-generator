@@ -9,7 +9,6 @@ import (
 	"github.com/moby/moby/api/types/container"
 	"github.com/moby/moby/api/types/network"
 	"github.com/stretchr/testify/assert"
-	"github.com/traefik/traefik/v3/pkg/config/dynamic"
 )
 
 func assertEmptyOutput(t *testing.T, tpls *Templates) {
@@ -161,8 +160,8 @@ func Test_getUrlFromTraefik_noTraefik(t *testing.T) {
 func Test_getUrlFromTraefik_noRouters(t *testing.T) {
 	result := getUrlFromTraefik(Container{
 		Gatus: &GatusConfig{Url: "https://example.com"},
-		Traefik: &dynamic.Configuration{
-			HTTP: &dynamic.HTTPConfiguration{},
+		Traefik: &TraefikDynamicConfig{
+			HTTP: &TraefikDynamicHTTPConfiguration{},
 		},
 	})
 	assert.Equal(t, "https://example.com", result)
@@ -171,9 +170,9 @@ func Test_getUrlFromTraefik_noRouters(t *testing.T) {
 func Test_getUrlFromTraefik_routerWithoutHost(t *testing.T) {
 	result := getUrlFromTraefik(Container{
 		Gatus: &GatusConfig{Url: "https://example.com"},
-		Traefik: &dynamic.Configuration{
-			HTTP: &dynamic.HTTPConfiguration{
-				Routers: map[string]*dynamic.Router{
+		Traefik: &TraefikDynamicConfig{
+			HTTP: &TraefikDynamicHTTPConfiguration{
+				Routers: map[string]*TraefikDynamicHttpRouter{
 					"test": {Rule: ""},
 				},
 			},
@@ -185,9 +184,9 @@ func Test_getUrlFromTraefik_routerWithoutHost(t *testing.T) {
 func Test_getUrlFromTraefik_routerWithHostButNoPathPrefix(t *testing.T) {
 	result := getUrlFromTraefik(Container{
 		Gatus: &GatusConfig{Url: "https://example.com", Path: "/health"},
-		Traefik: &dynamic.Configuration{
-			HTTP: &dynamic.HTTPConfiguration{
-				Routers: map[string]*dynamic.Router{
+		Traefik: &TraefikDynamicConfig{
+			HTTP: &TraefikDynamicHTTPConfiguration{
+				Routers: map[string]*TraefikDynamicHttpRouter{
 					"test": {Rule: "Host(`test.com`)"},
 				},
 			},
@@ -199,9 +198,9 @@ func Test_getUrlFromTraefik_routerWithHostButNoPathPrefix(t *testing.T) {
 func Test_getUrlFromTraefik_routerWithHostAndPathPrefix(t *testing.T) {
 	result := getUrlFromTraefik(Container{
 		Gatus: &GatusConfig{Url: "https://example.com", Path: "/health"},
-		Traefik: &dynamic.Configuration{
-			HTTP: &dynamic.HTTPConfiguration{
-				Routers: map[string]*dynamic.Router{
+		Traefik: &TraefikDynamicConfig{
+			HTTP: &TraefikDynamicHTTPConfiguration{
+				Routers: map[string]*TraefikDynamicHttpRouter{
 					"test": {Rule: "Host(`test.com`) && PathPrefix(`/test`)"},
 				},
 			},
@@ -309,12 +308,12 @@ func Test_getUrlFromDocker_WithTraefikAndOneNetworkWithAliasAndDeduceFromExposed
 				},
 			},
 		},
-		Traefik: &dynamic.Configuration{
-			HTTP: &dynamic.HTTPConfiguration{
-				Services: map[string]*dynamic.Service{
+		Traefik: &TraefikDynamicConfig{
+			HTTP: &TraefikDynamicHTTPConfiguration{
+				Services: map[string]*TraefikDynamicHttpService{
 					"test": {
-						LoadBalancer: &dynamic.ServersLoadBalancer{
-							Servers: []dynamic.Server{{Port: "4321", Scheme: "https"}},
+						LoadBalancer: &TraefikDynamicHttpServersLoadBalancer{
+							Servers: []TraefikDynamicHttpServer{{Port: "4321", Scheme: "https"}},
 						},
 					},
 				},
@@ -423,12 +422,12 @@ func Test_getUrlFromExposed_WithTraefikButNoExposedPorts(t *testing.T) {
 	config := TestConfig{ENV_GATUS_IP: "10.10.10.1"}
 	result := getUrlFromExposed(config, Container{
 		Gatus: &GatusConfig{Url: "https://example.com", Path: "/health"},
-		Traefik: &dynamic.Configuration{
-			HTTP: &dynamic.HTTPConfiguration{
-				Services: map[string]*dynamic.Service{
+		Traefik: &TraefikDynamicConfig{
+			HTTP: &TraefikDynamicHTTPConfiguration{
+				Services: map[string]*TraefikDynamicHttpService{
 					"test": {
-						LoadBalancer: &dynamic.ServersLoadBalancer{
-							Servers: []dynamic.Server{{Port: "1234", Scheme: "https"}},
+						LoadBalancer: &TraefikDynamicHttpServersLoadBalancer{
+							Servers: []TraefikDynamicHttpServer{{Port: "1234", Scheme: "https"}},
 						},
 					},
 				},
@@ -454,12 +453,12 @@ func Test_getUrlFromExposed_WithTraefikAndExposedPortButNoHostIP(t *testing.T) {
 				},
 			},
 		},
-		Traefik: &dynamic.Configuration{
-			HTTP: &dynamic.HTTPConfiguration{
-				Services: map[string]*dynamic.Service{
+		Traefik: &TraefikDynamicConfig{
+			HTTP: &TraefikDynamicHTTPConfiguration{
+				Services: map[string]*TraefikDynamicHttpService{
 					"test": {
-						LoadBalancer: &dynamic.ServersLoadBalancer{
-							Servers: []dynamic.Server{{Port: "1234"}},
+						LoadBalancer: &TraefikDynamicHttpServersLoadBalancer{
+							Servers: []TraefikDynamicHttpServer{{Port: "1234"}},
 						},
 					},
 				},
@@ -485,12 +484,12 @@ func Test_getUrlFromExposed_WithTraefikAndExposedPortAndHostIP(t *testing.T) {
 				},
 			},
 		},
-		Traefik: &dynamic.Configuration{
-			HTTP: &dynamic.HTTPConfiguration{
-				Services: map[string]*dynamic.Service{
+		Traefik: &TraefikDynamicConfig{
+			HTTP: &TraefikDynamicHTTPConfiguration{
+				Services: map[string]*TraefikDynamicHttpService{
 					"test": {
-						LoadBalancer: &dynamic.ServersLoadBalancer{
-							Servers: []dynamic.Server{{Port: "1234"}},
+						LoadBalancer: &TraefikDynamicHttpServersLoadBalancer{
+							Servers: []TraefikDynamicHttpServer{{Port: "1234"}},
 						},
 					},
 				},
@@ -516,12 +515,12 @@ func Test_getUrlFromExposed_WithTraefikUrlAndExposedPortAndHostIP(t *testing.T) 
 				},
 			},
 		},
-		Traefik: &dynamic.Configuration{
-			HTTP: &dynamic.HTTPConfiguration{
-				Services: map[string]*dynamic.Service{
+		Traefik: &TraefikDynamicConfig{
+			HTTP: &TraefikDynamicHTTPConfiguration{
+				Services: map[string]*TraefikDynamicHttpService{
 					"test": {
-						LoadBalancer: &dynamic.ServersLoadBalancer{
-							Servers: []dynamic.Server{{URL: "https://a:1234"}},
+						LoadBalancer: &TraefikDynamicHttpServersLoadBalancer{
+							Servers: []TraefikDynamicHttpServer{{URL: "https://a:1234"}},
 						},
 					},
 				},

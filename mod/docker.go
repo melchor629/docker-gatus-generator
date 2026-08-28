@@ -9,7 +9,6 @@ import (
 
 	"github.com/moby/moby/api/types/events"
 	"github.com/moby/moby/client"
-	traefikLabels "github.com/traefik/traefik/v3/pkg/config/label"
 )
 
 type DockerProvider struct {
@@ -53,7 +52,7 @@ func (dp *DockerProvider) handleResult(containers client.ContainerListResult) (T
 		}
 
 		templateList := strings.Split(templateListJoined, ",")
-		traefikConfig, err := traefikLabels.DecodeConfiguration(container.Labels)
+		traefikConfig, err := DecodeTraefikLabels(container.Labels)
 		path, _ := container.Labels["gatus.path"]
 		port, _ := container.Labels["gatus.port"]
 		scheme, _ := container.Labels["gatus.scheme"]

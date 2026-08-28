@@ -4,7 +4,6 @@ import (
 	"log/slog"
 
 	"github.com/moby/moby/api/types/container"
-	traefikDynamic "github.com/traefik/traefik/v3/pkg/config/dynamic"
 )
 
 type GatusConfig struct {
@@ -20,7 +19,7 @@ type Container struct {
 	Name    string
 	Summary container.Summary
 	Inspect container.InspectResponse
-	Traefik *traefikDynamic.Configuration
+	Traefik *TraefikDynamicConfig
 	Gatus   *GatusConfig
 }
 
