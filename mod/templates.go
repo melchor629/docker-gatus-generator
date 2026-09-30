@@ -81,7 +81,7 @@ func getUrlFromDocker(container Container) string {
 
 	port, _ := strconv.Atoi(traefikPort)
 	if container.Inspect.NetworkSettings != nil {
-		if container.Inspect.NetworkSettings.Ports != nil {
+		if port <= 0 && container.Inspect.NetworkSettings.Ports != nil {
 			ports := slices.Collect(maps.Keys(container.Inspect.NetworkSettings.Ports))
 			selectedPortIndex := slices.IndexFunc(ports, func(p network.Port) bool { return int(p.Num()) == port })
 			if selectedPortIndex == -1 {

@@ -268,7 +268,7 @@ func Test_getUrlFromDocker_NoTraefikButOneNetworkWithAliasAndSelectFromExposedPo
 	assert.Equal(t, "https://test:1234/health", result)
 }
 
-func Test_getUrlFromDocker_NoTraefikButOneNetworkWithAliasAndDeduceFromExposedPort(t *testing.T) {
+func Test_getUrlFromDocker_NoTraefikButOneNetworkWithAliasAndDeduceFromLabelPort(t *testing.T) {
 	result := getUrlFromDocker(Container{
 		Gatus: &GatusConfig{Url: "https://example.com", Path: "/health", Port: "4321", Scheme: "https"},
 		Inspect: container.InspectResponse{
@@ -287,10 +287,10 @@ func Test_getUrlFromDocker_NoTraefikButOneNetworkWithAliasAndDeduceFromExposedPo
 			},
 		},
 	})
-	assert.Equal(t, "https://test:1234/health", result)
+	assert.Equal(t, "https://test:4321/health", result)
 }
 
-func Test_getUrlFromDocker_WithTraefikAndOneNetworkWithAliasAndDeduceFromExposedPort(t *testing.T) {
+func Test_getUrlFromDocker_WithTraefikAndOneNetworkWithAliasAndDeduceFromTraefikPort(t *testing.T) {
 	result := getUrlFromDocker(Container{
 		Gatus: &GatusConfig{Url: "https://example.com", Path: "/health"},
 		Inspect: container.InspectResponse{
@@ -320,7 +320,7 @@ func Test_getUrlFromDocker_WithTraefikAndOneNetworkWithAliasAndDeduceFromExposed
 			},
 		},
 	})
-	assert.Equal(t, "https://test:1234/health", result)
+	assert.Equal(t, "https://test:4321/health", result)
 }
 
 func Test_getUrlFromExposed_WithoutTraefkNorExposedPort(t *testing.T) {
