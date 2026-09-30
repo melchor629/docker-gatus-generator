@@ -93,3 +93,25 @@ jobs:
         with:
           project: gatus
           service: generator
+
+  deploy-md:
+    runs-on: ubuntu-latest
+    needs: build
+    environment: md
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout actions
+        uses: actions/checkout@v6
+        with:
+          repository: melchor629/actions
+          ref: main
+          token: ${{ secrets.PAT_GITHUB }}
+          path: ./.github/actions
+          fetch-depth: 0
+
+      - name: Deploy
+        uses: ./.github/actions/deploy/md
+        with:
+          project: gatus
+          service: generator
